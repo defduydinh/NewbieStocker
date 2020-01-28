@@ -1,46 +1,44 @@
-import toAlpha
-import webbrowser
-try:
-    from tabulate import tabulate
-except:
-    print("Error: Tabulate install required")
+#import necessary libraries
+import pandas as pd
+import json
+import webbrowser as wb
+import yfinance as yf
+import datetime
+from pandas_datareader import data as pdr
 
-def printTable():
-    listSymbol = []
-    listDiv = []
-    with open("symbol.txt", "r") as ticker:
-        for line in ticker:
-            lineHolder = line[:-1]
-            listSymbol.append(lineHolder)
+#import addition .py files
+import getAPI_key
+import fetchResponse
 
-
-    labelHead = [
-        "Symbol",
-        "Dividend"
-    ]
-
-    for x in listSymbol:
-        currentSymbol = toAlpha.requestSon(x)
-        currentDiv = toAlpha.parseDiv(currentSymbol)
-        listDiv.append(currentDiv)
-
-    toPrint = []
-
-    for x in range(0,len(listSymbol)):
-        newtable = [listSymbol[x], listDiv[x]]
-        toPrint.append(newtable)
-    print(tabulate(toPrint, headers= labelHead, numalign="left"))
-    return
-
-
-def main():
-    printTable()
-    tickerSym = input("Enter a ticker:: ")
-    secURL = "https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=%s&type=10-k&dateb=&owner=exclude&count=40" % tickerSym
-    webbrowser.get('google-chrome').open_new_tab(secURL)
-
-    return 0
+json_content = {}
 
 if __name__ == "__main__":
-    main()
-
+    try:
+        #get API key
+        API_key = ""
+        #check for API key presence
+        if(getAPI_key.verifyKey() == -1):
+            getAPI_key.verifyKey()
+        else:
+            API_key = getAPI_key.verifyKey()
+            
+        #get ticker symbol
+        ticker = input("Enter Ticker:: ")
+        #fetch response for ticker from Rapid API
+        API_response = fetchResponse.fetchStockData(ticker, API_key)
+        
+        #Determine response
+        if(API_response != None):
+            global json_content
+            json_content = API_response
+            
+            
+        else:
+            print("Rapid API response: None")
+            
+            
+    except Exception as err:
+        #Catch and output error
+        print("Error: ")
+        print(err)
+        
