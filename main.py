@@ -4,6 +4,8 @@ import json
 import webbrowser as wb
 import yfinance as yf
 import datetime
+import os
+import shutil
 from pandas_datareader import data as pdr
 
 #import addition .py files
@@ -29,9 +31,21 @@ if __name__ == "__main__":
         
         #Determine response
         if(API_response != None):
-            global json_content
+            #global json_content
             json_content = API_response
             
+            #write response to file and move to /responses folder
+            fileName = "response." + ticker + ".json"
+            try:
+                fileResponse = open(fileName, "w")
+                fileResponse.write(str(json_content))
+                fileResponse.close()
+                
+                shutil.move(("./" + fileName), "./responses/")
+            except Exception as err:
+                print("Write file response errored.")
+                print(err)
+        
             
         else:
             print("Rapid API response: None")
@@ -39,6 +53,6 @@ if __name__ == "__main__":
             
     except Exception as err:
         #Catch and output error
-        print("Error: ")
+        print("Main encountered error: ")
         print(err)
         
