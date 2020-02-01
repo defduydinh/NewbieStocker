@@ -11,44 +11,54 @@ from pandas_datareader import data as pdr
 #import addition .py files
 import getAPI_key
 import fetchResponse
+import parseData
 
-json_content = {}
 
 if __name__ == "__main__":
     try:
         #get API key
         API_key = ""
         #check for API key presence
-        if(getAPI_key.verifyKey() == -1):
+        if(getAPI_key.verifyKey() < 0):
             getAPI_key.verifyKey()
         else:
             API_key = getAPI_key.verifyKey()
             
         #get ticker symbol
         ticker = input("Enter Ticker:: ")
-        #fetch response for ticker from Rapid API
-        API_response = fetchResponse.fetchStockData(ticker, API_key)
+        fileName = "response." + ticker + ".json"
         
-        #Determine response
-        if(API_response != None):
-            #global json_content
-            json_content = API_response
+        #Check if request been made before
+        try:
+            responseLoc = "./responses/" + fileName
+            file = open(responseLoc, "r")
+            print("File " + fileName + " exist, will not request from server.")
             
-            #write response to file and move to /responses folder
-            fileName = "response." + ticker + ".json"
-            try:
-                fileResponse = open(fileName, "w")
-                fileResponse.write(str(json_content))
-                fileResponse.close()
+            file.close()
+            
+        except IOError as err:
+            #fetch response for ticker from Rapid API
+            print(ticker + " never requested, will request now.")
+            API_response = fetchResponse.fetchStockData(ticker, API_key)
+        
+            #Determine response
+            if(API_response != None):
+                #global json_content
+                json_content = API_response
                 
-                shutil.move(("./" + fileName), "./responses/")
-            except Exception as err:
-                print("Write file response errored.")
-                print(err)
-        
-            
-        else:
-            print("Rapid API response: None")
+                #write response to file and move to /responses folder
+                try:
+                    fileResponse = open(fileName, "w")
+                    fileResponse.write(str(json_content))
+                    fileResponse.close()
+                    
+                    shutil.move(("./" + fileName), "./responses/")
+                except Exception as err:
+                    print("Write file response errored.")
+                    print(err)
+                
+            else:
+                print("Rapid API response: " + str(API_response))
             
             
     except Exception as err:
